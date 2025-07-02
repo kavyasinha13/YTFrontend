@@ -19,7 +19,7 @@ export default function Login() {
       const { data } = await axios.post("http://localhost:8000/api/v1/users/login", form);
       dispatch(setUser({ user: data.data.user, token: data.data.accessToken }));
       localStorage.setItem("token", data.data.accessToken);
-      navigate("/");
+      navigate("/home");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

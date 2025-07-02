@@ -9,6 +9,7 @@ import Upload from "./pages/Upload";
 import VideoDetail from "./pages/VideoDetail";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import Navbar from "./components/Navbar";
+import LandingPage from "./pages/LandingPage.jsx";
 
 export default function App() {
   return (
@@ -16,8 +17,8 @@ export default function App() {
       <Navbar/>
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<LandingPage/>} />
+        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Signup />} />
         <Route path="/upload" element={<PrivateRoute><Upload /></PrivateRoute>} />
