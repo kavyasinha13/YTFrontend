@@ -2,6 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
+
+/*todo- 
+comments are only showing for the logged in user and comments by other user are not visible
+username is not showing for comments
+comments are not showing after another log in session
+*/
 export default function Home() {
   const [videos, setVideos] = useState([]);
    const [likes, setLikes] = useState({});
@@ -12,49 +18,73 @@ export default function Home() {
 
   const token = localStorage.getItem("token"); // Extract token
 
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        if (!token) {
-          console.error("No token found");
-          return;
-        }
-        const res = await axios.get("http://localhost:8000/api/v1/videos", {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ Add token dynamically
-          },
-        });
-
-        const docs = res?.data?.data?.docs || [];
-        setVideos(docs);
-
-        //fetch videos
-
-        const likeRes = await axios.get("http://localhost:8000/api/v1/likes/videos", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const likedVideos = likeRes.data.data || [];
-        const likedMap = {};
-        likedVideos.forEach((entry) => {
-          if (entry.likedVideo?._id) {
-            likedMap[entry.likedVideo._id] = true;
-          }
-        });
-        setLikes(likedMap);
-        
-      } catch (err) {
-        console.error("Error fetching videos:", err);
-        setVideos([]);
-      } finally {
-        setLoading(false);
+ useEffect(() => {
+  const fetchVideos = async () => {
+    try {
+      if (!token) {
+        console.error("No token found");
+        return;
       }
-    };
 
-    fetchVideos();
-  }, []);
+      const res = await axios.get("http://localhost:8000/api/v1/videos", {
+        headers: {
+          Authorization: `Bearer ${token}`, // Add token dynamically
+        },
+      });
+
+      const docs = res?.data?.data?.docs || [];
+      setVideos(docs);
+
+      // fetch likes
+      const likeRes = await axios.get("http://localhost:8000/api/v1/likes/videos", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const likedVideos = likeRes.data.data || [];
+      const likedMap = {};
+      likedVideos.forEach((entry) => {
+        if (entry.likedVideo?._id) {
+          likedMap[entry.likedVideo._id] = true;
+        }
+      });
+      setLikes(likedMap);
+
+      // fetch comments
+      const commentsMap = {};
+      const showCommentsMap = {}; // new object to open comments by default
+
+      for (const video of docs) {
+        const commentRes = await axios.get(
+          `http://localhost:8000/api/v1/comments/${video._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        commentsMap[video._id] = commentRes.data.data || [];
+
+        // automatically show comments for each video
+        showCommentsMap[video._id] = true;
+      }
+
+      setComments(commentsMap);
+      setShowComments(showCommentsMap); //  apply visibility
+
+    } catch (err) {
+      console.error("Error fetching videos:", err);
+      setVideos([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchVideos();
+}, []);
+
 
 const toggleLike = async (videoId) => {
     try {
@@ -88,7 +118,7 @@ const fetchComments = async (videoId) => {
       );
       setComments((prev) => ({
       ...prev,
-      [videoId]: res.data.data.comments, 
+      [videoId]: res.data.data, 
     }));
     } catch (err) {
       console.error("Error fetching comments", err);
@@ -101,17 +131,28 @@ const handleCommentSubmit = async (videoId, e) => {
     if (!content?.trim()) return;
 
     try {
-      await axios.post(
-        `http://localhost:8000/api/v1/comments/${videoId}`,
-        { content },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setCommentForms((prev) => ({ ...prev, [videoId]: "" }));
-      fetchComments(videoId); // Refresh after submit
+      const res = await axios.post(`http://localhost:8000/api/v1/comments/${videoId}`,
+  { content },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+// Reset comment input
+setCommentForms((prev) => ({ ...prev, [videoId]: "" }));
+
+// Append the new comment to the existing comments array (most recent at top)
+setComments((prev) => {
+  const existingComments = Array.isArray(prev[videoId]) ? prev[videoId] : [];
+  return {
+    ...prev,
+    [videoId]: [res.data.data, ...existingComments],
+  };
+});
+
+
     } catch (err) {
       console.error("Error adding comment", err);
     }
@@ -130,78 +171,65 @@ const handleCommentSubmit = async (videoId, e) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
   
   {videos.map((video) => (
-    <div
-      key={video._id}
-      className="bg-white rounded shadow hover:shadow-lg transition p-4"
+  <div
+    key={video._id}
+    className="bg-white rounded shadow hover:shadow-lg transition p-4"
+  >
+    <img
+      src={video.thumbnail?.url}
+      alt={video.title}
+      className="w-full h-48 object-cover rounded mb-2"
+    />
+    <h3 className="font-semibold">{video.title}</h3>
+    <p className="text-sm text-gray-600 truncate">{video.description}</p>
+
+    <video
+      src={video.videoFile?.url}
+      controls
+      className="w-full mt-2 rounded"
+    ></video>
+
+    {/* Like Button */}
+    <button
+      onClick={() => toggleLike(video._id)}
+      className={`mt-2 px-3 py-1 rounded text-white ${
+        likes[video._id] ? "bg-red-500" : "bg-gray-500"
+      }`}
     >
-      <img
-        src={video.thumbnail?.url}
-        alt={video.title}
-        className="w-full h-48 object-cover rounded mb-2"
-      />
-      <h3 className="font-semibold">{video.title}</h3>
-      <p className="text-sm text-gray-600 truncate">{video.description}</p>
+      {likes[video._id] ? "Unlike" : "Like"}
+    </button>
 
-      <video
-        src={video.videoFile?.url}
-        controls
-        className="w-full mt-2 rounded"
-      ></video>
-
-      {/* Like Button */}
-      <button
-        onClick={() => toggleLike(video._id)}
-        className={`mt-2 px-3 py-1 rounded text-white ${
-          likes[video._id] ? "bg-red-500" : "bg-gray-500"
-        }`}
+    {/* Comment Section (always shown now) */}
+    <div className="mt-4">
+      {/* Comment Form */}
+      <form
+        onSubmit={(e) => handleCommentSubmit(video._id, e)}
+        className="mb-3"
       >
-        {likes[video._id] ? "Unlike" : "Like"}
-      </button>
+        <textarea
+          className="w-full border rounded p-2 mb-2"
+          rows={2}
+          placeholder="Add a comment..."
+          value={commentForms[video._id] || ""}
+          onChange={(e) =>
+            setCommentForms((prev) => ({
+              ...prev,
+              [video._id]: e.target.value,
+            }))
+          }
+        />
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-3 py-1 rounded"
+        >
+          Post Comment
+        </button>
+      </form>
 
-      {/* Comment Toggle */}
-      <button
-        onClick={() => {
-          const open = showComments[video._id];
-          setShowComments((prev) => ({ ...prev, [video._id]: !open }));
-          if (!open) fetchComments(video._id);
-        }}
-        className="ml-3 text-blue-600 text-sm underline"
-      >
-        {showComments[video._id] ? "Hide Comments" : "Show Comments"}
-      </button>
-
-      {/* Comment Section */}
-      {showComments[video._id] && (
-        <div className="mt-4">
-          {/* Comment Form */}
-          <form
-            onSubmit={(e) => handleCommentSubmit(video._id, e)}
-            className="mb-3"
-          >
-            <textarea
-              className="w-full border rounded p-2 mb-2"
-              rows={2}
-              placeholder="Add a comment..."
-              value={commentForms[video._id] || ""}
-              onChange={(e) =>
-                setCommentForms((prev) => ({
-                  ...prev,
-                  [video._id]: e.target.value,
-                }))
-              }
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-3 py-1 rounded"
-            >
-              Post Comment
-            </button>
-          </form>
-
-          {/* Comments Display */}
-          {comments[video._id]?.length > 0 ? (
+      {/* Comments Display */}
+      {comments[video._id]?.length > 0 ? (
   <div className="space-y-2 text-sm">
-    {comments[video._id].map((comment) => (
+    {[...comments[video._id]].reverse().map((comment) => (
       <div key={comment._id} className="border-t border-gray-200 pt-2">
         <p>{comment.content}</p>
         <p className="text-xs text-gray-400">
@@ -213,10 +241,11 @@ const handleCommentSubmit = async (videoId, e) => {
 ) : (
   <p className="text-gray-500 text-sm">No comments yet.</p>
 )}
-        </div>
-      )}
+
     </div>
-  ))}
+  </div>
+))}
+
         </div>
       )}
     </div>
