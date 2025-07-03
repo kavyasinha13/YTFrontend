@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
+import Sidebar from "./Sidebar";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
 
 /*todo- 
-comments are only showing for the logged in user and comments by other user are not visible
-username is not showing for comments
-comments are not showing after another log in session
+comments are only showing for the logged in user - problem solved but the username is only visible after reload
 */
 export default function Home() {
   const [videos, setVideos] = useState([]);
@@ -145,14 +144,17 @@ setCommentForms((prev) => ({ ...prev, [videoId]: "" }));
 
 // Append the new comment to the existing comments array (most recent at top)
 setComments((prev) => {
-  const existingComments = Array.isArray(prev[videoId]) ? prev[videoId] : [];
+  const existing = prev[videoId] || { docs: [], totalDocs: 0 };
+
   return {
     ...prev,
-    [videoId]: [res.data.data, ...existingComments],
+    [videoId]: {
+      ...existing,
+      docs: [res.data.data, ...existing.docs], //  push new comment into docs[]
+      totalDocs: existing.totalDocs + 1,
+    },
   };
 });
-
-
     } catch (err) {
       console.error("Error adding comment", err);
     }
@@ -160,7 +162,12 @@ setComments((prev) => {
 
 
   return (
-    <div className="p-4">
+    <>
+      <div className="flex">
+        <Sidebar />
+     <div className="ml-60 p-6 w-full">
+     
+     <div className="p-4"> 
       <h2 className="text-2xl font-bold mb-4 text-center">All Videos</h2>
 
       {loading ? (
@@ -226,10 +233,9 @@ setComments((prev) => {
         </button>
       </form>
 
-      {/* Comments Display */}
-      {comments[video._id]?.length > 0 ? (
+      {comments[video._id]?.docs?.length > 0 ? (
   <div className="space-y-2 text-sm">
-    {[...comments[video._id]].reverse().map((comment) => (
+    {comments[video._id].docs.map((comment) => (
       <div key={comment._id} className="border-t border-gray-200 pt-2">
         <p>{comment.content}</p>
         <p className="text-xs text-gray-400">
@@ -242,6 +248,7 @@ setComments((prev) => {
   <p className="text-gray-500 text-sm">No comments yet.</p>
 )}
 
+
     </div>
   </div>
 ))}
@@ -249,5 +256,7 @@ setComments((prev) => {
         </div>
       )}
     </div>
-  );
+    </div>
+   </div>
+</>);
 }

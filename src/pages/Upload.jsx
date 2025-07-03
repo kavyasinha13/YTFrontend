@@ -51,7 +51,7 @@ export default function Upload() {
       );
 
       toast.success("Video uploaded successfully");
-      navigate("/");
+      navigate("/home");
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to upload video");
