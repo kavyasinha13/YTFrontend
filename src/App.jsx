@@ -10,6 +10,9 @@ import VideoDetail from "./pages/VideoDetail";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage.jsx";
+import WatchHistory from "./pages/WatchHistory";
+import LikedVideos from "./pages/LikedVideos";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -37,6 +40,23 @@ export default function App() {
           }
         />
         <Route path="/video/:videoId" element={<VideoDetail />} />
+        <Route path="/history" element={<WatchHistory />} />
+        <Route
+          path="/videos"
+          element={
+            <PrivateRoute>
+              <LikedVideos />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/c/:username"
+          element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </div>
   );

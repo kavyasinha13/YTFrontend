@@ -3,45 +3,33 @@
 @tailwind components;
 @tailwind utilities;
 
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Add line-clamp utility if not available in your Tailwind config */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Ensure aspect-video works */
+.aspect-video {
+  aspect-ratio: 16 / 9;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Custom scrollbar for tab navigation */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-.card {
-  padding: 2em;
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
 }
 
-.read-the-docs {
-  color: #888;
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
