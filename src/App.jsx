@@ -14,14 +14,28 @@ import LandingPage from "./pages/LandingPage.jsx";
 export default function App() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800">
-      <Navbar/>
+      <Navbar />
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<LandingPage/>} />
-        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/" element={<LandingPage />} />
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Signup />} />
-        <Route path="/upload" element={<PrivateRoute><Upload /></PrivateRoute>} />
+        <Route
+          path="/upload"
+          element={
+            <PrivateRoute>
+              <Upload />
+            </PrivateRoute>
+          }
+        />
         <Route path="/video/:videoId" element={<VideoDetail />} />
       </Routes>
     </div>

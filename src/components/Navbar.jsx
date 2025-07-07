@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,17 +10,21 @@ export default function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    localStorage.removeItem("token"); 
+    localStorage.removeItem("token");
     navigate("/login");
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-      <Link to="/" className="text-xl font-bold">YTClone</Link>
+    <nav className="bg-blue-400 text-gray-800 border-b border-gray-200 px-4 py-3 flex justify-between items-center shadow">
+      <Link to="/" className="text-xl font-bold">
+        YTClone
+      </Link>
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <Link to="/upload" className="text-blue-600">Upload</Link>
+            <Link to="/upload" className="text-blue-600">
+              Upload
+            </Link>
             <button
               onClick={handleLogout}
               className="text-red-500 border px-3 py-1 rounded hover:bg-red-100"
@@ -31,8 +34,12 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link to="/login" className="text-blue-600">Login</Link>
-            <Link to="/register" className="text-blue-600">Signup</Link>
+            <Link to="/login" className="text-blue-600">
+              Login
+            </Link>
+            <Link to="/register" className="text-blue-600">
+              Signup
+            </Link>
           </>
         )}
       </div>
