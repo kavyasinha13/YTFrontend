@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import jwtDecode from "jwt-decode";
 import { Bell, Check, MoreHorizontal, Play, Eye, Clock } from "lucide-react";
+
+//configure the status of subscribe button even after reload
 
 export default function Profile() {
   const { username } = useParams();
   const token = localStorage.getItem("token");
-
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
 
   useEffect(() => {
     const fetchChannel = async () => {
@@ -64,10 +68,27 @@ export default function Profile() {
       }
     };
 
+    const checkSubscriptionStatus = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8000/api/v1/subscriptions/check/${channel._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIsSubscribed(res.data.data.subscribed);
+      } catch (err) {
+        console.error("Failed to check subscription status", err);
+      }
+    };
+
     if (username) {
       fetchChannel();
       fetchUserVideos();
       fetchChannelStats();
+      checkSubscriptionStatus();
     }
   }, [username]);
 
@@ -109,6 +130,35 @@ export default function Profile() {
               <span>{channel.subscribersCount} subscribers</span>
               <span>•</span>
               <span>{channel.email}</span>
+              {token &&
+                channel._id !== JSON.parse(atob(token.split(".")[1]))._id && (
+                  <button
+                    className={`ml-4 px-4 py-1 rounded text-white ${
+                      isSubscribed
+                        ? "bg-gray-500 hover:bg-gray-600"
+                        : "bg-red-600 hover:bg-red-700"
+                    }`}
+                    onClick={async () => {
+                      try {
+                        const res = await axios.post(
+                          `http://localhost:8000/api/v1/subscriptions/c/${channel._id}`,
+                          {},
+                          {
+                            headers: {
+                              Authorization: `Bearer ${token}`,
+                            },
+                          }
+                        );
+                        setIsSubscribed(res.data.data.subscribed);
+                      } catch (err) {
+                        console.error("Failed to toggle subscription", err);
+                      }
+                    }}
+                  >
+                    {isSubscribed ? "Subscribed" : "Subscribe"}
+                  </button>
+                )}
+
               {stats && (
                 <>
                   <span>•</span>

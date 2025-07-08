@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 /*todo- 
 comments are only showing for the logged in user - problem solved but the username is only visible after reload
@@ -214,6 +215,12 @@ export default function Home() {
                   className="w-full mt-2 rounded"
                   onPlay={() => handleWatchHistory(video._id)}
                 />
+
+                <p className=" my-3 text-sm text-blue-600 cursor-pointer hover:underline">
+                  <Link to={`/c/${video.ownerDetails.username}`}>
+                    {video.ownerDetails.username}
+                  </Link>
+                </p>
 
                 <div className="flex justify-between items-center text-sm text-gray-600 mt-1 px-1">
                   <div className="flex items-center gap-1">
