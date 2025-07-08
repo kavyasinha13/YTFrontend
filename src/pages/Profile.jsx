@@ -9,6 +9,7 @@ export default function Profile() {
 
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,9 +48,26 @@ export default function Profile() {
       }
     };
 
+    const fetchChannelStats = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8000/api/v1/users/stats/${username}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setStats(res.data.data);
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      }
+    };
+
     if (username) {
       fetchChannel();
       fetchUserVideos();
+      fetchChannelStats();
     }
   }, [username]);
 
@@ -91,6 +109,16 @@ export default function Profile() {
               <span>{channel.subscribersCount} subscribers</span>
               <span>•</span>
               <span>{channel.email}</span>
+              {stats && (
+                <>
+                  <span>•</span>
+                  <span>{stats.totalVideos} videos</span>
+                  <span>•</span>
+                  <span>{stats.totalViews} views</span>
+                  <span>•</span>
+                  <span>{stats.totalLikes} likes</span>
+                </>
+              )}
             </div>
           </div>
         </div>
