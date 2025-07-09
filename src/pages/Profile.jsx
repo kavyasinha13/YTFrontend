@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import jwtDecode from "jwt-decode";
 import { Bell, Check, MoreHorizontal, Play, Eye, Clock } from "lucide-react";
 
 //configure the status of subscribe button even after reload
@@ -15,6 +15,13 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loggedInUserId, setLoggedInUserId] = useState(null);
+
+  useEffect(() => {
+    if (token) {
+      const decoded = jwtDecode(token);
+      setLoggedInUserId(decoded._id);
+    }
+  }, [token]);
 
   useEffect(() => {
     const fetchChannel = async () => {
@@ -68,7 +75,19 @@ export default function Profile() {
       }
     };
 
+    if (username) {
+      fetchChannel();
+      fetchUserVideos();
+      fetchChannelStats();
+      if (channel && loggedInUserId && channel._id !== loggedInUserId) {
+        checkSubscriptionStatus();
+      }
+    }
+  }, [username, loggedInUserId]);
+
+  useEffect(() => {
     const checkSubscriptionStatus = async () => {
+      if (!channel || !loggedInUserId) return;
       try {
         const res = await axios.get(
           `http://localhost:8000/api/v1/subscriptions/check/${channel._id}`,
@@ -84,13 +103,10 @@ export default function Profile() {
       }
     };
 
-    if (username) {
-      fetchChannel();
-      fetchUserVideos();
-      fetchChannelStats();
+    if (channel && loggedInUserId && channel._id !== loggedInUserId) {
       checkSubscriptionStatus();
     }
-  }, [username]);
+  });
 
   if (loading) {
     return <div className="p-6 text-gray-600">Loading channel...</div>;
