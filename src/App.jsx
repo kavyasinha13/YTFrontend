@@ -13,6 +13,8 @@ import LandingPage from "./pages/LandingPage.jsx";
 import WatchHistory from "./pages/WatchHistory";
 import LikedVideos from "./pages/LikedVideos";
 import Profile from "./pages/Profile";
+import TweetFeed from "./components/tweets/TweetFeed";
+import TweetDetail from "./components/tweets/TweetDetail";
 
 export default function App() {
   return (
@@ -57,6 +59,8 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        <Route path="/tweets" element={<TweetFeed />} />
+        <Route path="/tweets/:tweetId" element={<TweetDetail />} />
       </Routes>
     </div>
   );

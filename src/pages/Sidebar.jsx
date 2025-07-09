@@ -11,6 +11,7 @@ import {
   User,
   Settings,
   LogOut,
+  Twitter,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -22,7 +23,7 @@ const Sidebar = () => {
 
   const menu = [
     { name: "Home", icon: Home },
-    { name: "Trending", icon: Flame },
+    { name: "Tweets", icon: Twitter, route: "/tweets" },
     { name: "Library", icon: Book },
     { name: "History", icon: Clock, route: "/history" },
     { name: "Watch Later", icon: Heart },
