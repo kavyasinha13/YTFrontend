@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
-import { Bell, Check, MoreHorizontal, Play, Eye, Clock } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 //configure the status of subscribe button even after reload
 
@@ -15,6 +15,10 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [loggedInUserId, setLoggedInUserId] = useState(null);
+  const [editingVideo, setEditingVideo] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editThumbnail, setEditThumbnail] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -116,6 +120,64 @@ export default function Profile() {
     return <div className="p-6 text-red-500">Channel not found.</div>;
   }
 
+  const handleDelete = async (videoId) => {
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/v1/videos/${videoId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setVideos((prev) => prev.filter((v) => v._id !== videoId));
+      alert("Video deleted successfully.");
+    } catch (error) {
+      console.error("Delete failed", error);
+    }
+  };
+
+  const handleEdit = (video) => {
+    setEditingVideo(video);
+    setEditTitle(video.title);
+    setEditDescription(video.description);
+  };
+
+  const handleEditSubmit = async (e, videoId) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("title", editTitle);
+    formData.append("description", editDescription);
+    if (editThumbnail) {
+      formData.append("thumbnail", editThumbnail);
+    }
+
+    try {
+      await axios.patch(
+        `http://localhost:8000/api/v1/videos/${videoId}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setVideos((prev) =>
+        prev.map((v) =>
+          v._id === videoId
+            ? { ...v, title: editTitle, description: editDescription }
+            : v
+        )
+      );
+
+      setEditingVideo(null);
+    } catch (err) {
+      console.error("Edit failed", err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Cover Image */}
@@ -197,13 +259,36 @@ export default function Profile() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {videos.map((video) => (
-                <div key={video._id} className="bg-white rounded shadow p-3">
-                  <div className="relative aspect-video overflow-hidden rounded mb-2">
+                <div
+                  key={video._id}
+                  className="relative bg-white rounded shadow p-3"
+                >
+                  <div className="relative aspect-video overflow-hidden rounded mb-2 group">
+                    {/*thumbnail */}
                     <img
                       src={video.thumbnail?.url}
                       alt={video.title}
                       className="w-full h-full object-cover"
                     />
+                    {/*edit and delete button */}
+                    {loggedInUserId === channel._id && (
+                      <div className="absolute top-2 right-2 flex gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(video)}
+                          className="p-1 bg-white rounded-full shadow hover:bg-blue-100"
+                          title="Edit Video"
+                        >
+                          <Pencil className="h-5 w-5 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(video._id)}
+                          className="p-1 bg-white rounded-full shadow hover:bg-red-100"
+                          title="Delete Video"
+                        >
+                          <Trash2 className="h-5 w-5 text-red-600" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <h4 className="font-medium text-gray-800 truncate">
                     {video.title}
@@ -218,6 +303,50 @@ export default function Profile() {
                   />
                 </div>
               ))}
+            </div>
+          )}
+          {/* Edit Modal */}
+          {editingVideo && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <h2 className="text-lg font-semibold mb-4">Edit Video</h2>
+                <form onSubmit={(e) => handleEditSubmit(e, editingVideo._id)}>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="Title"
+                    className="w-full mb-2 border px-3 py-2 rounded"
+                  />
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="Description"
+                    className="w-full mb-2 border px-3 py-2 rounded"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setEditThumbnail(e.target.files[0])}
+                    className="mb-4"
+                  />
+                  <div className="flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVideo(null)}
+                      className="px-4 py-2 bg-gray-400 text-white rounded"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
         </div>
