@@ -71,7 +71,12 @@ export default function TweetFeed() {
       {/* Tweets List */}
       <div className="space-y-4">
         {tweets.map((tweet) => (
-          <TweetCard key={tweet._id} tweet={tweet} setRefresh={setRefresh} />
+          <div
+            key={tweet._id}
+            className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300"
+          >
+            <TweetCard tweet={tweet} setRefresh={setRefresh} />
+          </div>
         ))}
       </div>
 

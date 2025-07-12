@@ -8,11 +8,13 @@ import {
   Trash2,
 } from "lucide-react";
 import EditTweetModal from "./EditTweetModal";
-import { Link } from "react-router-dom";
+import TweetComments from "./TweetComments";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function TweetCard({ tweet, setRefresh }) {
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   let loggedInUserId = null;
 
   if (token) {
@@ -116,13 +118,13 @@ export default function TweetCard({ tweet, setRefresh }) {
         </button>
 
         {/* This navigates to TweetDetail.jsx */}
-        <Link
-          to={`/tweets/${tweet._id}`}
-          className="flex items-center gap-1 hover:underline"
+        <button
+          onClick={() => navigate(`/tweets/${tweet._id}`)}
+          className="flex items-center gap-1 text-blue-600 hover:underline"
         >
           <MessageCircle className="w-4 h-4" />
           Comments
-        </Link>
+        </button>
       </div>
       {showEditModal && (
         <EditTweetModal
