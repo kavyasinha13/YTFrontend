@@ -15,6 +15,8 @@ import LikedVideos from "./pages/LikedVideos";
 import Profile from "./pages/Profile";
 import TweetFeed from "./components/tweets/TweetFeed";
 import TweetDetail from "./components/tweets/TweetDetail";
+import PlaylistsPage from "./pages/PlaylistsPages.jsx";
+import PlaylistDetail from "./pages/PlaylistDetail.jsx";
 
 export default function App() {
   return (
@@ -61,6 +63,8 @@ export default function App() {
         />
         <Route path="/tweets" element={<TweetFeed />} />
         <Route path="/tweets/:tweetId" element={<TweetDetail />} />
+        <Route path="/playlists" element={<PlaylistsPage />} />
+        <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
       </Routes>
     </div>
   );
