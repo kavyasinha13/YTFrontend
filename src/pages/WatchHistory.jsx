@@ -59,6 +59,16 @@ export default function WatchHistory() {
                 controls
                 className="w-full mt-2 rounded"
               ></video>
+              <div className="flex items-center gap-2 mt-2">
+                <img
+                  src={video.owner?.avatar?.url}
+                  alt={video.owner?.username}
+                  className="w-6 h-6 rounded-full"
+                />
+                <span className="text-sm text-gray-700">
+                  {video.owner?.username}
+                </span>
+              </div>
             </div>
           ))}
         </div>

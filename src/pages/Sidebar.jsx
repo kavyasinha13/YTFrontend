@@ -9,9 +9,8 @@ import {
   Video,
   UploadCloud,
   User,
-  Settings,
   LogOut,
-  Tweet,
+  MessageSquare,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -23,14 +22,13 @@ const Sidebar = () => {
 
   const menu = [
     { name: "Home", icon: Home },
-    { name: "Tweets", icon: Tweet, route: "/tweets" },
+    { name: "Tweets", icon: MessageSquare, route: "/tweets" },
     { name: "Playlists", icon: Book, route: "/playlists" },
     { name: "History", icon: Clock, route: "/history" },
-    { name: "Watch Later", icon: Heart },
+    { name: "Watch Later", icon: Heart, route: "/users/watchLater" },
     { name: "Liked Videos", icon: Video, route: "/videos" },
     { name: "Upload", icon: UploadCloud, route: "/upload" },
     { name: "Profile", icon: User, route: `/c/${user?.username}` },
-    { name: "Settings", icon: Settings },
     { name: "Logout", icon: LogOut },
   ];
 

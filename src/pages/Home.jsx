@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 
 /*todo- 
 comments are only showing for the logged in user - problem solved but the username is only visible after reload
@@ -12,6 +13,7 @@ export default function Home() {
   const [commentForms, setCommentForms] = useState({});
   const [showComments, setShowComments] = useState({});
   const [comments, setComments] = useState({});
+  const [watchLater, setWatchLater] = useState({});
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token"); // Extract token
@@ -52,6 +54,19 @@ export default function Home() {
         });
         setLikes(likedMap);
 
+        const watchLaterRes = await axios.get(
+          "http://localhost:8000/api/v1/users/watchLater",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const watchLaterVideos = watchLaterRes.data.data || [];
+        const watchLaterMap = {};
+        watchLaterVideos.forEach((video) => {
+          watchLaterMap[video._id] = true;
+        });
+        setWatchLater(watchLaterMap);
+
         // fetch comments
         const commentsMap = {};
         const showCommentsMap = {}; // new object to open comments by default
@@ -81,7 +96,6 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     fetchVideos();
   }, []);
 
@@ -177,6 +191,24 @@ export default function Home() {
     }
   };
 
+  const handleAddToWatchLater = async (videoId) => {
+    try {
+      await axios.post(
+        `http://localhost:8000/api/v1/users/watchLater/${videoId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Added to Watch Later ✅");
+    } catch (error) {
+      console.error("Failed to add to Watch Later:", error);
+      alert("Failed to add 😢");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-400">
       {/* Sidebar */}
@@ -197,7 +229,7 @@ export default function Home() {
             {videos.map((video) => (
               <div
                 key={video._id}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4"
+                className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4"
               >
                 <img
                   src={video.thumbnail?.url}
@@ -208,13 +240,19 @@ export default function Home() {
                 <p className="text-sm text-gray-600 truncate">
                   {video.description}
                 </p>
-
                 <video
                   src={video.videoFile?.url}
                   controls
                   className="w-full mt-2 rounded"
                   onPlay={() => handleWatchHistory(video._id)}
                 />
+                <button
+                  onClick={() => handleAddToWatchLater(video._id)}
+                  className="absolute top-2 right-2 bg-white/90 hover:bg-white p-1 rounded-full shadow"
+                  title="Add to Watch Later"
+                >
+                  <Heart className="w-5 h-5 text-gray-700" />
+                </button>
 
                 <p className=" my-3 text-sm text-blue-600 cursor-pointer hover:underline">
                   <Link to={`/c/${video.ownerDetails.username}`}>
