@@ -162,10 +162,11 @@ export default function PlaylistDetail() {
             key={video._id}
             className="border p-3 rounded shadow flex flex-col gap-2"
           >
-            <img
-              src={video.thumbnail?.url}
-              alt={video.title}
-              className="w-full h-40 object-cover rounded"
+            <video
+              src={video.videoFile?.url}
+              controls
+              className="w-full mt-2 rounded"
+              onPlay={() => handleWatchHistory(video._id)}
             />
             <h3 className="text-md font-semibold">{video.title}</h3>
             <p className="text-sm text-gray-500">{video.views} views</p>
