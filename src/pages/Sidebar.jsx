@@ -12,13 +12,20 @@ import {
   LogOut,
   MessageSquare,
 } from "lucide-react";
-
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../features/user/userSlice.js";
 
 const Sidebar = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   const menu = [
     { name: "Home", icon: Home },
@@ -29,7 +36,7 @@ const Sidebar = () => {
     { name: "Liked Videos", icon: Video, route: "/videos" },
     { name: "Upload", icon: UploadCloud, route: "/upload" },
     { name: "Profile", icon: User, route: `/c/${user?.username}` },
-    { name: "Logout", icon: LogOut },
+    { name: "Logout", icon: LogOut, action: handleLogout, authOnly: true },
   ];
 
   return (
@@ -42,7 +49,13 @@ const Sidebar = () => {
             <li
               key={item.name}
               className="flex items-center gap-3 text-gray-700 hover:text-blue-600 cursor-pointer"
-              onClick={() => navigate(item.route)}
+              onClick={() => {
+                if (item.action) {
+                  item.action();
+                } else if (item.route) {
+                  navigate(item.route);
+                }
+              }}
             >
               <IconComponent className="w-5 h-5" />
               <span>{item.name}</span>
