@@ -18,6 +18,7 @@ import TweetDetail from "./components/tweets/TweetDetail";
 import PlaylistsPage from "./pages/PlaylistsPages.jsx";
 import PlaylistDetail from "./pages/PlaylistDetail.jsx";
 import WatchLaterPage from "./pages/WatchLaterPage.jsx";
+import CommentsPage from "./pages/CommentsPage.jsx";
 
 export default function App() {
   return (
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/playlists" element={<PlaylistsPage />} />
         <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
         <Route path="users/watchLater" element={<WatchLaterPage />} />
+        <Route path="/comments/:videoId" element={<CommentsPage />} />
       </Routes>
     </div>
   );

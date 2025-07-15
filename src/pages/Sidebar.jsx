@@ -41,7 +41,6 @@ const Sidebar = () => {
 
   return (
     <aside className="w-60 min-h-screen bg-red-500 border-r px-4 py-6">
-      <h2 className="text-2xl font-bold mb-6">VideoHub</h2>
       <ul className="space-y-4">
         {menu.map((item) => {
           const IconComponent = item.icon;

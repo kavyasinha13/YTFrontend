@@ -45,17 +45,13 @@ export default function WatchHistory() {
               key={video._id}
               className="bg-white p-4 rounded shadow hover:shadow-md transition"
             >
-              <img
-                src={video.thumbnail?.url}
-                alt={video.title}
-                className="w-full h-40 object-cover rounded mb-2"
-              />
               <h3 className="font-semibold">{video.title}</h3>
               <p className="text-sm text-gray-600 truncate">
                 {video.description}
               </p>
               <video
                 src={video.videoFile?.url}
+                poster={video.thumbnail?.url}
                 controls
                 className="w-full mt-2 rounded"
               ></video>

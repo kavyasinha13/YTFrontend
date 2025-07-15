@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+import { Heart, MessageCircle, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 /*todo- 
 comments are only showing for the logged in user - problem solved but the username is only visible after reload
 */
 export default function Home() {
+  const navigate = useNavigate();
   const [videos, setVideos] = useState([]);
   const [likes, setLikes] = useState({});
   const [commentForms, setCommentForms] = useState({});
@@ -138,43 +140,6 @@ export default function Home() {
     }
   };
 
-  const handleCommentSubmit = async (videoId, e) => {
-    e.preventDefault();
-    const content = commentForms[videoId];
-    if (!content?.trim()) return;
-
-    try {
-      const res = await axios.post(
-        `http://localhost:8000/api/v1/comments/${videoId}`,
-        { content },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Reset comment input
-      setCommentForms((prev) => ({ ...prev, [videoId]: "" }));
-
-      // Append the new comment to the existing comments array (most recent at top)
-      setComments((prev) => {
-        const existing = prev[videoId] || { docs: [], totalDocs: 0 };
-
-        return {
-          ...prev,
-          [videoId]: {
-            ...existing,
-            docs: [res.data.data, ...existing.docs], //  push new comment into docs[]
-            totalDocs: existing.totalDocs + 1,
-          },
-        };
-      });
-    } catch (err) {
-      console.error("Error adding comment", err);
-    }
-  };
-
   const handleWatchHistory = async (videoId) => {
     try {
       await axios.post(
@@ -231,17 +196,13 @@ export default function Home() {
                 key={video._id}
                 className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4"
               >
-                <img
-                  src={video.thumbnail?.url}
-                  alt={video.title}
-                  className="w-full h-40 object-cover rounded mb-2"
-                />
                 <h3 className="font-semibold truncate">{video.title}</h3>
                 <p className="text-sm text-gray-600 truncate">
                   {video.description}
                 </p>
                 <video
                   src={video.videoFile?.url}
+                  poster={video.thumbnail?.url}
                   controls
                   className="w-full mt-2 rounded"
                   onPlay={() => handleWatchHistory(video._id)}
@@ -260,103 +221,37 @@ export default function Home() {
                   </Link>
                 </p>
 
+                {/*views count*/}
                 <div className="flex justify-between items-center text-sm text-gray-600 mt-1 px-1">
                   <div className="flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-gray-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7s-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
+                    <Eye className="w-4 h-4 text-gray-500" />
                     <span>{video.views} views</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 text-red-500"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                      stroke="none"
-                    >
-                      <path
-                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
-               4.42 3 7.5 3c1.74 0 3.41 0.81 
-               4.5 2.09C13.09 3.81 14.76 3 
-               16.5 3 19.58 3 22 5.42 22 
-               8.5c0 3.78-3.4 6.86-8.55 
-               11.54L12 21.35z"
-                      />
-                    </svg>
+
+                  {/* Like Button */}
+                  <button
+                    onClick={() => toggleLike(video._id)}
+                    className="hover:text-red-500 transition-colors duration-150"
+                    title="Like/Unlike"
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${
+                        likes[video._id] ? "text-red-500" : "text-gray-400"
+                      }`}
+                      fill={likes[video._id] ? "red" : "none"}
+                    />
                     <span>{video.likesCount || 0} likes</span>
-                  </div>
+                  </button>
                 </div>
 
-                {/* Like Button */}
-                <button
-                  onClick={() => toggleLike(video._id)}
-                  className={`mt-2 px-3 py-1 rounded text-white w-full ${
-                    likes[video._id] ? "bg-red-500" : "bg-gray-600"
-                  }`}
-                >
-                  {likes[video._id] ? "Unlike" : "Like"}
-                </button>
-
                 {/* Comments */}
-                <form
-                  onSubmit={(e) => handleCommentSubmit(video._id, e)}
-                  className="mt-4"
+                <button
+                  onClick={() => navigate(`/comments/${video._id}`)}
+                  className="hover:text-blue-500 transition-colors duration-150"
+                  title="View/Add Comments"
                 >
-                  <textarea
-                    className="w-full border rounded p-2 mb-2 text-sm"
-                    rows={2}
-                    placeholder="Add a comment..."
-                    value={commentForms[video._id] || ""}
-                    onChange={(e) =>
-                      setCommentForms((prev) => ({
-                        ...prev,
-                        [video._id]: e.target.value,
-                      }))
-                    }
-                  />
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                  >
-                    Post Comment
-                  </button>
-                </form>
-
-                {comments[video._id]?.docs?.length > 0 ? (
-                  <div className="mt-2 space-y-2 text-sm max-h-40 overflow-y-auto">
-                    {comments[video._id].docs.map((comment) => (
-                      <div
-                        key={comment._id}
-                        className="border-t border-gray-200 pt-2"
-                      >
-                        <p>{comment.content}</p>
-                        <p className="text-xs text-gray-400">
-                          — {comment.owner?.username || "Anonymous"}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-sm mt-2">No comments yet.</p>
-                )}
+                  <MessageCircle className="w-5 h-5" />
+                </button>
               </div>
             ))}
           </div>
