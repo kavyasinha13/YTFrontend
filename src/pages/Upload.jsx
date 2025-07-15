@@ -28,7 +28,12 @@ export default function Upload() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.title || !form.description || !form.videoFile || !form.thumbnail) {
+    if (
+      !form.title ||
+      !form.description ||
+      !form.videoFile ||
+      !form.thumbnail
+    ) {
       toast.error("All fields are required");
       return;
     }
@@ -41,7 +46,7 @@ export default function Upload() {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/v1/videos", // ✅ use full backend URL
+        "http://localhost:8000/api/v1/videos", //use full backend URL
         formData,
         {
           headers: {
@@ -77,19 +82,25 @@ export default function Upload() {
           placeholder="Description"
           className="w-full px-4 py-2 border rounded"
         />
+        <label className="block text-sm font-medium text-gray-700">
+          Video File
+        </label>
         <input
           type="file"
           name="videoFile"
           accept="video/*"
           onChange={handleChange}
-          className="w-full"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
         />
+        <label className="block text-sm font-medium text-gray-700">
+          Thumbnail
+        </label>
         <input
           type="file"
           name="thumbnail"
           accept="image/*"
           onChange={handleChange}
-          className="w-full"
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
         />
         <button
           type="submit"
