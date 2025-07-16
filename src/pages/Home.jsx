@@ -121,25 +121,6 @@ export default function Home() {
     }
   };
 
-  const fetchComments = async (videoId) => {
-    try {
-      const res = await axios.get(
-        `http://localhost:8000/api/v1/comments/${videoId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setComments((prev) => ({
-        ...prev,
-        [videoId]: res.data.data,
-      }));
-    } catch (err) {
-      console.error("Error fetching comments", err);
-    }
-  };
-
   const handleWatchHistory = async (videoId) => {
     try {
       await axios.post(
@@ -176,11 +157,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-gray-400">
-      {/* Sidebar */}
-      <div className="w-[240px] bg-red-500 border-r min-h-screen">
-        <Sidebar />
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 p-6 overflow-y-auto">
         <h2 className="text-2xl font-bold mb-6 text-center">All Videos</h2>

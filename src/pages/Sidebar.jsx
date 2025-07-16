@@ -28,7 +28,7 @@ const Sidebar = () => {
   };
 
   const menu = [
-    { name: "Home", icon: Home },
+    { name: "Home", icon: Home, route: "/home" },
     { name: "Tweets", icon: MessageSquare, route: "/tweets" },
     { name: "Playlists", icon: Book, route: "/playlists" },
     { name: "History", icon: Clock, route: "/history" },

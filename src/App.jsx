@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Upload from "./pages/Upload";
+import Layout from "./components/Layout.jsx";
 import VideoDetail from "./pages/VideoDetail";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import Navbar from "./components/Navbar";
@@ -26,49 +27,58 @@ export default function App() {
       <Navbar />
       <Toaster position="top-right" />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
         <Route
-          path="/home"
+          path="/"
           element={
             <PrivateRoute>
-              <Home />
+              <Layout />
             </PrivateRoute>
           }
-        />
+        >
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/home"
+            element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <PrivateRoute>
+                <Upload />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/video/:videoId" element={<VideoDetail />} />
+          <Route path="/history" element={<WatchHistory />} />
+          <Route
+            path="/videos"
+            element={
+              <PrivateRoute>
+                <LikedVideos />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/c/:username"
+            element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/tweets" element={<TweetFeed />} />
+          <Route path="/tweets/:tweetId" element={<TweetDetail />} />
+          <Route path="/playlists" element={<PlaylistsPage />} />
+          <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
+          <Route path="users/watchLater" element={<WatchLaterPage />} />
+          <Route path="/comments/:videoId" element={<CommentsPage />} />
+        </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Signup />} />
-        <Route
-          path="/upload"
-          element={
-            <PrivateRoute>
-              <Upload />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/video/:videoId" element={<VideoDetail />} />
-        <Route path="/history" element={<WatchHistory />} />
-        <Route
-          path="/videos"
-          element={
-            <PrivateRoute>
-              <LikedVideos />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/c/:username"
-          element={
-            <PrivateRoute>
-              <Profile />
-            </PrivateRoute>
-          }
-        />
-        <Route path="/tweets" element={<TweetFeed />} />
-        <Route path="/tweets/:tweetId" element={<TweetDetail />} />
-        <Route path="/playlists" element={<PlaylistsPage />} />
-        <Route path="/playlists/:playlistId" element={<PlaylistDetail />} />
-        <Route path="users/watchLater" element={<WatchLaterPage />} />
-        <Route path="/comments/:videoId" element={<CommentsPage />} />
       </Routes>
     </div>
   );
