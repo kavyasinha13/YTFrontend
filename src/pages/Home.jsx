@@ -155,27 +155,29 @@ export default function Home() {
             {videos.map((video) => (
               <div
                 key={video._id}
-                className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4"
+                className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col"
               >
                 <h3 className="font-semibold truncate">{video.title}</h3>
                 <p className="text-sm text-gray-600 truncate">
                   {video.description}
                 </p>
-                <video
-                  src={video.videoFile?.url}
-                  poster={video.thumbnail?.url}
-                  controls
-                  className="w-full mt-2 rounded"
-                  onPlay={() => handleWatchHistory(video._id)}
-                />
-
-                <button
-                  onClick={() => handleAddToWatchLater(video._id)}
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white p-1 rounded-full shadow"
-                  title="Add to Watch Later"
-                >
-                  <Heart className="w-5 h-5 text-gray-700" />
-                </button>
+                <div className="relative mt-2">
+                  <video
+                    src={video.videoFile?.url}
+                    poster={video.thumbnail?.url}
+                    controls
+                    className="w-full mt-2 rounded"
+                    onPlay={() => handleWatchHistory(video._id)}
+                  />
+                  {/*add to playlist */}
+                  <button
+                    onClick={() => setSelectedVideo(video._id)}
+                    className="hover:text-green-600 transition-colors duration-150"
+                    title="Add to Playlist"
+                  >
+                    <PlusCircle className="w-5 h-5" />
+                  </button>
+                </div>
 
                 <p className="my-3 text-sm text-blue-600 cursor-pointer hover:underline">
                   <Link to={`/c/${video.ownerDetails.username}`}>
@@ -183,7 +185,7 @@ export default function Home() {
                   </Link>
                 </p>
 
-                <div className="flex justify-between items-center text-sm text-gray-600 mt-1 px-1">
+                <div className="flex justify-between items-center text-sm text-gray-600 border-t pt-2 mt-auto gap-4">
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4 text-gray-500" />
                     <span>{video.views} views</span>
@@ -202,9 +204,7 @@ export default function Home() {
                     />
                     <span>{video.likesCount || 0} likes</span>
                   </button>
-                </div>
 
-                <div className="flex justify-between items-center mt-2">
                   <button
                     onClick={() => navigate(`/comments/${video._id}`)}
                     className="hover:text-blue-500 transition-colors duration-150"
@@ -214,11 +214,11 @@ export default function Home() {
                   </button>
 
                   <button
-                    onClick={() => setSelectedVideo(video._id)}
-                    className="hover:text-green-600 transition-colors duration-150"
-                    title="Add to Playlist"
+                    onClick={() => handleAddToWatchLater(video._id)}
+                    className="absolute top-2 right-2 bg-white/90 hover:bg-white p-1 rounded-full shadow"
+                    title="Add to Watch Later"
                   >
-                    <PlusCircle className="w-5 h-5" />
+                    <Heart className="w-5 h-5 text-gray-700" />
                   </button>
                 </div>
 

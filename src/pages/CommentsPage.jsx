@@ -133,7 +133,7 @@ export default function CommentsPage() {
           className={`w-full py-2 rounded text-white font-medium transition 
             ${
               newComment.trim()
-                ? "bg-blue-500 hover:bg-blue-600"
+                ? "bg-blue-500 hover:bg-red-600"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
           disabled={!newComment.trim()}
@@ -158,7 +158,7 @@ export default function CommentsPage() {
               return (
                 <div
                   key={comment._id}
-                  className="border border-gray-200 rounded-md p-4 bg-gray-50 hover:shadow"
+                  className="border border-gray-200 rounded-md p-4 bg-blue-100 hover:shadow"
                 >
                   {editingId === comment._id ? (
                     <>

@@ -47,7 +47,7 @@ const Sidebar = () => {
           return (
             <li
               key={item.name}
-              className="flex items-center gap-3 text-gray-700 hover:text-blue-600 cursor-pointer"
+              className=" my-6 flex items-center gap-3 text-black-700 hover:text-blue-600 cursor-pointer"
               onClick={() => {
                 if (item.action) {
                   item.action();
