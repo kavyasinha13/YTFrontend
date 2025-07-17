@@ -7,7 +7,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Upload from "./pages/Upload";
 import Layout from "./components/Layout.jsx";
-import VideoDetail from "./pages/VideoDetail";
+import VideoCard from "./pages/VideoCard";
 import PrivateRoute from "./components/PrivateRoute.jsx";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage.jsx";
@@ -20,6 +20,7 @@ import PlaylistsPage from "./pages/PlaylistsPages.jsx";
 import PlaylistDetail from "./pages/PlaylistDetail.jsx";
 import WatchLaterPage from "./pages/WatchLaterPage.jsx";
 import CommentsPage from "./pages/CommentsPage.jsx";
+import SearchPage from "./pages/SearchPage.jsx";
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
             </PrivateRoute>
           }
         >
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/home"
@@ -52,7 +54,7 @@ export default function App() {
               </PrivateRoute>
             }
           />
-          <Route path="/video/:videoId" element={<VideoDetail />} />
+          <Route path="/video/:videoId" element={<VideoCard />} />
           <Route path="/history" element={<WatchHistory />} />
           <Route
             path="/videos"
