@@ -2,23 +2,22 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Eye } from "lucide-react";
+import { Heart, MessageCircle, Eye, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-/*todo- 
-comments are only showing for the logged in user - problem solved but the username is only visible after reload
-*/
 export default function Home() {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.user);
+  const userId = user?._id;
   const [videos, setVideos] = useState([]);
   const [likes, setLikes] = useState({});
-  const [commentForms, setCommentForms] = useState({});
-  const [showComments, setShowComments] = useState({});
-  const [comments, setComments] = useState({});
   const [watchLater, setWatchLater] = useState({});
   const [loading, setLoading] = useState(true);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
-  const token = localStorage.getItem("token"); // Extract token
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -29,24 +28,18 @@ export default function Home() {
         }
 
         const res = await axios.get("http://localhost:8000/api/v1/videos", {
-          headers: {
-            Authorization: `Bearer ${token}`, // Add token dynamically
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const docs = res?.data?.data?.docs || [];
         setVideos(docs);
 
-        // fetch likes
         const likeRes = await axios.get(
           "http://localhost:8000/api/v1/likes/videos",
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
-
         const likedVideos = likeRes.data.data || [];
         const likedMap = {};
         likedVideos.forEach((entry) => {
@@ -69,28 +62,13 @@ export default function Home() {
         });
         setWatchLater(watchLaterMap);
 
-        // fetch comments
-        const commentsMap = {};
-        const showCommentsMap = {}; // new object to open comments by default
-
-        for (const video of docs) {
-          const commentRes = await axios.get(
-            `http://localhost:8000/api/v1/comments/${video._id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          commentsMap[video._id] = commentRes.data.data || [];
-
-          // automatically show comments for each video
-          showCommentsMap[video._id] = true;
-        }
-
-        setComments(commentsMap);
-        setShowComments(showCommentsMap); //  apply visibility
+        const playlistRes = await axios.get(
+          `http://localhost:8000/api/v1/playlists/user/${userId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setUserPlaylists(playlistRes.data.data || []);
       } catch (err) {
         console.error("Error fetching videos:", err);
         setVideos([]);
@@ -107,15 +85,10 @@ export default function Home() {
         `http://localhost:8000/api/v1/likes/toggle/v/${videoId}`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setLikes((prev) => ({
-        ...prev,
-        [videoId]: res.data.data.isLiked,
-      }));
+      setLikes((prev) => ({ ...prev, [videoId]: res.data.data.isLiked }));
     } catch (err) {
       console.error("Error toggling like", err);
     }
@@ -127,9 +100,7 @@ export default function Home() {
         `http://localhost:8000/api/v1/users/history/${videoId}`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
     } catch (err) {
@@ -143,9 +114,7 @@ export default function Home() {
         `http://localhost:8000/api/v1/users/watchLater/${videoId}`,
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
       alert("Added to Watch Later ✅");
@@ -155,9 +124,25 @@ export default function Home() {
     }
   };
 
+  const handleAddToPlaylist = async (playlistId) => {
+    try {
+      await axios.patch(
+        `http://localhost:8000/api/v1/playlists/add/${selectedVideo}/${playlistId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert("Video added to playlist ✅");
+      setSelectedVideo(null);
+    } catch (error) {
+      console.error("Failed to add video to playlist:", error);
+      alert("Failed to add 😢");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-400">
-      {/* Main Content */}
       <div className="flex-1 p-6 overflow-y-auto">
         <h2 className="text-2xl font-bold mb-6 text-center">All Videos</h2>
 
@@ -183,6 +168,7 @@ export default function Home() {
                   className="w-full mt-2 rounded"
                   onPlay={() => handleWatchHistory(video._id)}
                 />
+
                 <button
                   onClick={() => handleAddToWatchLater(video._id)}
                   className="absolute top-2 right-2 bg-white/90 hover:bg-white p-1 rounded-full shadow"
@@ -191,20 +177,18 @@ export default function Home() {
                   <Heart className="w-5 h-5 text-gray-700" />
                 </button>
 
-                <p className=" my-3 text-sm text-blue-600 cursor-pointer hover:underline">
+                <p className="my-3 text-sm text-blue-600 cursor-pointer hover:underline">
                   <Link to={`/c/${video.ownerDetails.username}`}>
                     {video.ownerDetails.username}
                   </Link>
                 </p>
 
-                {/*views count*/}
                 <div className="flex justify-between items-center text-sm text-gray-600 mt-1 px-1">
                   <div className="flex items-center gap-1">
                     <Eye className="w-4 h-4 text-gray-500" />
                     <span>{video.views} views</span>
                   </div>
 
-                  {/* Like Button */}
                   <button
                     onClick={() => toggleLike(video._id)}
                     className="hover:text-red-500 transition-colors duration-150"
@@ -220,14 +204,38 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Comments */}
-                <button
-                  onClick={() => navigate(`/comments/${video._id}`)}
-                  className="hover:text-blue-500 transition-colors duration-150"
-                  title="View/Add Comments"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                </button>
+                <div className="flex justify-between items-center mt-2">
+                  <button
+                    onClick={() => navigate(`/comments/${video._id}`)}
+                    className="hover:text-blue-500 transition-colors duration-150"
+                    title="View/Add Comments"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedVideo(video._id)}
+                    className="hover:text-green-600 transition-colors duration-150"
+                    title="Add to Playlist"
+                  >
+                    <PlusCircle className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {selectedVideo === video._id && (
+                  <div className="mt-2 bg-gray-100 p-2 rounded shadow">
+                    <p className="font-medium mb-1">Add to Playlist:</p>
+                    {userPlaylists.map((pl) => (
+                      <button
+                        key={pl._id}
+                        onClick={() => handleAddToPlaylist(pl._id)}
+                        className="block w-full text-left px-2 py-1 hover:bg-gray-200 rounded"
+                      >
+                        {pl.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

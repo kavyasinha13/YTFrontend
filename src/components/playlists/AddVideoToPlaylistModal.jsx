@@ -12,7 +12,7 @@ const AddVideoToPlaylistModal = ({ playlistId, onClose }) => {
     const fetchVideos = async () => {
       try {
         const res = await getChannelVideos(user.username, token);
-        console.log("Fetched user videos:", res); // Debugging
+        console.log("Fetched user videos:", res);
         setVideos(res);
       } catch (err) {
         console.error("Error fetching videos:", err);
