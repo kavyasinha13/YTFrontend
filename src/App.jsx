@@ -21,6 +21,7 @@ import PlaylistDetail from "./pages/PlaylistDetail.jsx";
 import WatchLaterPage from "./pages/WatchLaterPage.jsx";
 import CommentsPage from "./pages/CommentsPage.jsx";
 import SearchPage from "./pages/SearchPage.jsx";
+import WatchPage from "./pages/WatchPage.jsx";
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
             }
           />
           <Route path="/video/:videoId" element={<VideoCard />} />
+          <Route path="/watch/:videoId" element={<WatchPage />} />
           <Route path="/history" element={<WatchHistory />} />
           <Route
             path="/videos"

@@ -14,7 +14,7 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Search Bar at the Top */}
-        <div className="w-full border-b p-4 bg-gray sticky top-0 z-10">
+        <div className="w-full border-b p-4 bg-white sticky top-0 z-10">
           <SearchBar />
         </div>
 

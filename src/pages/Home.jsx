@@ -1,82 +1,92 @@
+// pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { Heart, MessageCircle, Eye, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import VideoCard from "./VideoCard"; // Import the new VideoCard component
 
 export default function Home() {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user.user);
   const userId = user?._id;
+  const [commentsCounts, setCommentsCounts] = useState({});
   const [videos, setVideos] = useState([]);
-  const [likes, setLikes] = useState({});
-  const [watchLater, setWatchLater] = useState({});
+  const [likes, setLikes] = useState({}); // Stores liked status by video ID
+  const [watchLaterStatus, setWatchLaterStatus] = useState({}); // Stores watch later status by video ID
   const [loading, setLoading] = useState(true);
   const [userPlaylists, setUserPlaylists] = useState([]);
-  const [selectedVideo, setSelectedVideo] = useState(null);
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    const fetchVideos = async () => {
+    const fetchInitialData = async () => {
       try {
         if (!token) {
-          console.error("No token found");
+          console.error("No token found, redirecting to login.");
+          navigate("/login");
           return;
         }
 
-        const res = await axios.get("http://localhost:8000/api/v1/videos", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Fetch all videos
+        const videosRes = await axios.get(
+          "http://localhost:8000/api/v1/videos",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setVideos(videosRes?.data?.data?.docs || []);
 
-        const docs = res?.data?.data?.docs || [];
-        setVideos(docs);
-
-        const likeRes = await axios.get(
+        // Fetch user's liked videos
+        const likedVideosRes = await axios.get(
           "http://localhost:8000/api/v1/likes/videos",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const likedVideos = likeRes.data.data || [];
         const likedMap = {};
-        likedVideos.forEach((entry) => {
+        likedVideosRes.data.data.forEach((entry) => {
           if (entry.likedVideo?._id) {
             likedMap[entry.likedVideo._id] = true;
           }
         });
         setLikes(likedMap);
 
+        // Fetch user's watch later videos
         const watchLaterRes = await axios.get(
           "http://localhost:8000/api/v1/users/watchLater",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        const watchLaterVideos = watchLaterRes.data.data || [];
         const watchLaterMap = {};
-        watchLaterVideos.forEach((video) => {
+        watchLaterRes.data.data.forEach((video) => {
           watchLaterMap[video._id] = true;
         });
-        setWatchLater(watchLaterMap);
+        setWatchLaterStatus(watchLaterMap);
 
-        const playlistRes = await axios.get(
-          `http://localhost:8000/api/v1/playlists/user/${userId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        setUserPlaylists(playlistRes.data.data || []);
+        // Fetch user's playlists
+        if (userId) {
+          const playlistRes = await axios.get(
+            `http://localhost:8000/api/v1/playlists/user/${userId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          setUserPlaylists(playlistRes.data.data || []);
+        }
       } catch (err) {
-        console.error("Error fetching videos:", err);
+        console.error("Error fetching initial data:", err);
+        // Handle specific errors like 401 (unauthorized)
+        if (err.response && err.response.status === 401) {
+          navigate("/login");
+        }
         setVideos([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchVideos();
-  }, []);
+    fetchInitialData();
+  }, [token, userId, navigate]);
 
   const toggleLike = async (videoId) => {
     try {
@@ -87,9 +97,26 @@ export default function Home() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setLikes((prev) => ({ ...prev, [videoId]: res.data.data.isLiked }));
+      const isLikedNow = res.data.data.isLiked;
+
+      setLikes((prev) => ({ ...prev, [videoId]: isLikedNow }));
+
+      setVideos((prevVideos) =>
+        prevVideos.map((video) => {
+          if (video._id === videoId) {
+            return {
+              ...video,
+              likesCount: isLikedNow
+                ? video.likesCount + 1
+                : video.likesCount - 1,
+            };
+          }
+          return video;
+        })
+      );
     } catch (err) {
-      console.error("Error toggling like", err);
+      console.error("Error toggling like:", err);
+      alert("Failed to toggle like 😢");
     }
   };
 
@@ -103,7 +130,7 @@ export default function Home() {
         }
       );
     } catch (err) {
-      console.error("Error adding to watch history", err);
+      console.error("Error adding to watch history:", err);
     }
   };
 
@@ -116,126 +143,64 @@ export default function Home() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Added to Watch Later ✅");
+      alert("Added to Watch Later ");
+
+      setWatchLaterStatus((prev) => ({ ...prev, [videoId]: true }));
     } catch (error) {
       console.error("Failed to add to Watch Later:", error);
-      alert("Failed to add 😢");
+      alert("Failed to add to Watch Later 😢");
     }
   };
 
-  const handleAddToPlaylist = async (playlistId) => {
+  const handleAddToPlaylist = async (videoId, playlistId) => {
     try {
       await axios.patch(
-        `http://localhost:8000/api/v1/playlists/add/${selectedVideo}/${playlistId}`,
+        `http://localhost:8000/api/v1/playlists/add/${videoId}/${playlistId}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Video added to playlist ✅");
-      setSelectedVideo(null);
+      alert("Video added to playlist ");
+      // No need to update specific state here, just confirmation
     } catch (error) {
       console.error("Failed to add video to playlist:", error);
-      alert("Failed to add 😢");
+      alert("Failed to add to playlist 😢");
     }
   };
 
+  const handleViewComments = (videoId) => {
+    navigate(`/comments/${videoId}`);
+  };
+
   return (
-    <div className="flex min-h-screen bg-gray-400">
-      <div className="flex-1 p-6 overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-6 text-center">All Videos</h2>
+    <div className="flex min-h-screen bg-gray-100 p-6">
+      {" "}
+      <div className="flex-1 overflow-y-auto">
+        <h2 className="text-3xl font-extrabold mb-8 text-center text-gray-800">
+          Explore Videos
+        </h2>
 
         {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
+          <p className="text-center text-gray-500 text-lg">Loading videos...</p>
         ) : videos.length === 0 ? (
-          <p className="text-center text-gray-500">No videos found.</p>
+          <p className="text-center text-gray-600 text-lg mt-10">
+            No videos found. Start uploading!
+          </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {videos.map((video) => (
-              <div
+              <VideoCard
                 key={video._id}
-                className="relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 p-4 flex flex-col"
-              >
-                <h3 className="font-semibold truncate">{video.title}</h3>
-                <p className="text-sm text-gray-600 truncate">
-                  {video.description}
-                </p>
-                <div className="relative mt-2">
-                  <video
-                    src={video.videoFile?.url}
-                    poster={video.thumbnail?.url}
-                    controls
-                    className="w-full mt-2 rounded"
-                    onPlay={() => handleWatchHistory(video._id)}
-                  />
-                  {/*add to playlist */}
-                  <button
-                    onClick={() => setSelectedVideo(video._id)}
-                    className="hover:text-green-600 transition-colors duration-150"
-                    title="Add to Playlist"
-                  >
-                    <PlusCircle className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <p className="my-3 text-sm text-blue-600 cursor-pointer hover:underline">
-                  <Link to={`/c/${video.ownerDetails.username}`}>
-                    {video.ownerDetails.username}
-                  </Link>
-                </p>
-
-                <div className="flex justify-between items-center text-sm text-gray-600 border-t pt-2 mt-auto gap-4">
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4 text-gray-500" />
-                    <span>{video.views} views</span>
-                  </div>
-
-                  <button
-                    onClick={() => toggleLike(video._id)}
-                    className="hover:text-red-500 transition-colors duration-150"
-                    title="Like/Unlike"
-                  >
-                    <Heart
-                      className={`w-5 h-5 ${
-                        likes[video._id] ? "text-red-500" : "text-gray-400"
-                      }`}
-                      fill={likes[video._id] ? "red" : "none"}
-                    />
-                    <span>{video.likesCount || 0} likes</span>
-                  </button>
-
-                  <button
-                    onClick={() => navigate(`/comments/${video._id}`)}
-                    className="hover:text-blue-500 transition-colors duration-150"
-                    title="View/Add Comments"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                  </button>
-
-                  <button
-                    onClick={() => handleAddToWatchLater(video._id)}
-                    className="absolute top-2 right-2 bg-white/90 hover:bg-white p-1 rounded-full shadow"
-                    title="Add to Watch Later"
-                  >
-                    <Heart className="w-5 h-5 text-gray-700" />
-                  </button>
-                </div>
-
-                {selectedVideo === video._id && (
-                  <div className="mt-2 bg-gray-100 p-2 rounded shadow">
-                    <p className="font-medium mb-1">Add to Playlist:</p>
-                    {userPlaylists.map((pl) => (
-                      <button
-                        key={pl._id}
-                        onClick={() => handleAddToPlaylist(pl._id)}
-                        className="block w-full text-left px-2 py-1 hover:bg-gray-200 rounded"
-                      >
-                        {pl.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                video={video}
+                isLiked={likes[video._id]} // Pass the liked status
+                onToggleLike={toggleLike}
+                onAddToWatchLater={handleAddToWatchLater}
+                onViewComments={handleViewComments}
+                onVideoPlay={handleWatchHistory}
+                userPlaylists={userPlaylists}
+                onAddToPlaylist={handleAddToPlaylist}
+              />
             ))}
           </div>
         )}
